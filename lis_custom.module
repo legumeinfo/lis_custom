@@ -14,9 +14,9 @@
 function lis_custom_blast_linkout_info() {
   $types = array();
   
-  $types['peanutbase_gbrowse'] = array(
-    'name' => 'PeanutBase GBrowse',
-    'process function' => 'tripal_custom_generate_peanutbase_gbrowse_linkout',
+  $types['lis_gbrowse'] = array(
+    'name' => 'LegumeInfo GBrowse',
+    'process function' => 'tripal_custom_generate_lis_gbrowse_linkout',
     'require_regex' => TRUE,
   );
   
@@ -55,6 +55,9 @@ function tripal_custom_generate_lis_gbrowse_linkout($url_prefix, $hit, $info, $o
     }
     else if (preg_match('/^lotja/', $hit_name) == 1) {
       $blastdb_name = 'LegumeInfo_lotja_gbrowse';
+    }
+    else if (preg_match('/^lupan/', $hit_name) == 1) {
+      $blastdb_name = 'LegumeInfo_lupan_gbrowse';
     }
     else if (preg_match('/^medtr/', $hit_name) == 1) {
       $blastdb_name = 'LegumeInfo_medtr_gbrowse';
@@ -102,6 +105,9 @@ function tripal_custom_generate_lis_gbrowse_linkout($url_prefix, $hit, $info, $o
     }
     else if (preg_match('/^lotja/', $hit_name) == 1) {
       $blastdb_name = 'LegumeInfo_lotja_gene';
+    }
+    else if (preg_match('/^lupan/', $hit_name) == 1) {
+      $blastdb_name = 'LegumeInfo_lupan_gene';
     }
     else if (preg_match('/^medtr/', $hit_name) == 1) {
       $blastdb_name = 'LegumeInfo_medtr_gene';
