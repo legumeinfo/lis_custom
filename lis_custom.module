@@ -133,7 +133,7 @@ function tripal_custom_generate_lis_gbrowse_linkout($url_prefix, $hit, $info, $o
   }
 
   return $url;
-}//tripal_custom_generate_peanutbase_gbrowse_linkout
+}//tripal_custom_generate_lis_gbrowse_linkout
 
 
 
