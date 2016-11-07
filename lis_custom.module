@@ -66,6 +66,9 @@ function tripal_custom_generate_lis_gbrowse_linkout($url_prefix, $hit, $info, $o
     else if (preg_match('/^phavu/', $hit_name) == 1) {
       $blastdb_name = 'LegumeInfo_phavu_gbrowse';
     }
+    else if (preg_match('/^tripr/', $hit_name) == 1) {
+      $blastdb_name = 'LegumeInfo_tripr_gbrowse';
+    }
     else if (preg_match('/^vigan/', $hit_name) == 1) {
       $blastdb_name = 'LegumeInfo_vigan_gbrowse';
     }
@@ -118,6 +121,9 @@ function tripal_custom_generate_lis_gbrowse_linkout($url_prefix, $hit, $info, $o
     }
     else if (preg_match('/^phavu/', $hit_name) == 1) {
       $blastdb_name = 'LegumeInfo_phavu_gene';
+    }
+    else if (preg_match('/^tripr/', $hit_name) == 1) {
+      $blastdb_name = 'LegumeInfo_tripr_gene';
     }
     else if (preg_match('/^vigan/', $hit_name) == 1) {
       $blastdb_name = 'LegumeInfo_vigan_genes';
