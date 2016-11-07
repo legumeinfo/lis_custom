@@ -140,7 +140,6 @@ function tripal_custom_generate_lis_gbrowse_linkout($url_prefix, $hit, $info, $o
 /**
  * Retrieves the url prefix for a blast database based on it's name.
  */
- /*
 function tripal_custom_getBLASTdbinfo($blastdb_name) {
 
   $sql = "
@@ -155,4 +154,4 @@ function tripal_custom_getBLASTdbinfo($blastdb_name) {
   }
   
   return false;
-}*/
+}
