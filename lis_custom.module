@@ -33,6 +33,7 @@ function tripal_custom_generate_lis_gbrowse_linkout($url_prefix, $hit, $info, $o
   $url = false;
   $blastdb_name = NULL;
   $hit_name = $hit->{'Hit_def'};
+//drupal_set_message("Hit name: $hit_name");
 
   if ($info['Target'] == 'All genomes') {
     // default regex
@@ -64,6 +65,9 @@ function tripal_custom_generate_lis_gbrowse_linkout($url_prefix, $hit, $info, $o
     }
     else if (preg_match('/^phavu/', $hit_name) == 1) {
       $blastdb_name = 'LegumeInfo_phavu_gbrowse';
+    }
+    else if (preg_match('/^vigan/', $hit_name) == 1) {
+      $blastdb_name = 'LegumeInfo_vigan_gbrowse';
     }
     else if (preg_match('/^vigra/', $hit_name) == 1) {
       $blastdb_name = 'LegumeInfo_vigra_gbrowse';
@@ -114,6 +118,9 @@ function tripal_custom_generate_lis_gbrowse_linkout($url_prefix, $hit, $info, $o
     }
     else if (preg_match('/^phavu/', $hit_name) == 1) {
       $blastdb_name = 'LegumeInfo_phavu_gene';
+    }
+    else if (preg_match('/^vigan/', $hit_name) == 1) {
+      $blastdb_name = 'LegumeInfo_vigan_genes';
     }
     else if (preg_match('/^vigra/', $hit_name) == 1) {
       $blastdb_name = 'LegumeInfo_vigra_gene';
