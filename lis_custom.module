@@ -195,23 +195,10 @@ function tripal_custom_getBLASTdbinfo($blastdb_name) {
 
 
 function lis_custom_generate_linkout_gbrowse($url_prefix, $hit, $info) {
-  // First we need to collect the HSPs to define the ranges we want to
-  // display on the GBrowse.
-  $ranges = array();
-  // We also keep track of all the coordinates in order to later
-  // calculate the smallest and largest coordinate.
-  $coords = array();
-  foreach($info['HSPs'] as $hsp) {
-  
-    $start = min($hsp['Hsp_hit-from'], $hsp['Hsp_hit-to']);
-    $stop = max($hsp['Hsp_hit-from'], $hsp['Hsp_hit-to']);
-    
-    // Format the hsp for inclusion in the new track later.
-    array_push($ranges, "$start..$stop");
-    
-    // Add both the start & stop to the coordinate list.
-    array_push($coords, $start, $stop);
-  }
+  $range_info = lis_custom_getHSPranges($info['HSPs'], 0);
+  $ranges = $range_info['ranges'];
+  $coords = $range_info['coords'];
+//drupal_set_message("ranges: <pre>" . print_r($ranges, true) . "</pre>coords: <pre>" . print_r($coords, true) . "</pre>");
   
   // Calculate the minimum & maximum coordinates.
   $min = min($coords);
@@ -230,16 +217,41 @@ function lis_custom_generate_linkout_gbrowse($url_prefix, $hit, $info) {
 
 
 function lis_custom_generate_linkout_gene_gbrowse($url_prefix, $hit, $info) {
+//drupal_set_message("hit: <pre>" . print_r($hit, true) . "</pre>");
+  // Hit positions will be relative to the gene model, so adjust to genome position
+  preg_match("/^\w+\./", $hit->{'Hit_def'}, $prefix);
+//drupal_set_message("Got prefix: ".$prefix[0]);
+  $position = lis_custom_getGenePosition($prefix[0], $hit->{'linkout_id'});
+//drupal_set_message("postion: <pre>" . print_r($position, true) . "</pre>");
+  
+  $range_info = lis_custom_getHSPranges($info['HSPs'], $position['start']);
+  $ranges = $range_info['ranges'];
+  $coords = $range_info['coords'];
+//drupal_set_message("ranges: <pre>" . print_r($ranges, true) . "</pre>coords: <pre>" . print_r($coords, true) . "</pre>");
+  
+  // Build the link brute force until/unless someone figures out how to prevent
+  //   l() from URL-encoding the sub-parameters to "query=".
+  $query = $hit->{'linkout_id'};
+  $query .= ";add=".$position['chr']."+BLAST+BlastHit=" . join ("," , $ranges);
+  $query .= ";h_feat=BlastHit";
+  $url = "<a href=\"$url_prefix$query\">" . $hit->{'linkout_id'} . "</a>";
+//drupal_set_message("URL: $url");
+  
+  return $url;
+}//lis_custom_generate_linkout_gene_gbrowse
+
+
+function lis_custom_getHSPranges($hsps, $offset) {
   // First we need to collect the HSPs to define the ranges we want to
   // display on the GBrowse.
   $ranges = array();
   // We also keep track of all the coordinates in order to later
   // calculate the smallest and largest coordinate.
   $coords = array();
-  foreach($info['HSPs'] as $hsp) {
+  foreach($hsps as $hsp) {
   
-    $start = min($hsp['Hsp_hit-from'], $hsp['Hsp_hit-to']);
-    $stop = max($hsp['Hsp_hit-from'], $hsp['Hsp_hit-to']);
+    $start = $offset + min($hsp['Hsp_hit-from'], $hsp['Hsp_hit-to']);
+    $stop  = $offset + max($hsp['Hsp_hit-from'], $hsp['Hsp_hit-to']);
     
     // Format the hsp for inclusion in the new track later.
     array_push($ranges, "$start..$stop");
@@ -248,13 +260,24 @@ function lis_custom_generate_linkout_gene_gbrowse($url_prefix, $hit, $info) {
     array_push($coords, $start, $stop);
   }
   
-  // Build the link brute force until/unless someone figures out how to prevent
-  //   l() from URL-encoding the sub-parameters to "query=".
-  $query = $hit->{'linkout_id'};
-  $query .= ";add=".$hit->{'linkout_id'}."+BLAST+BlastHit=" . join ("," , $ranges);
-  $query .= ";h_feat=BlastHit";
-  $url = "<a href=\"$url_prefix$query\">" . $hit->{'linkout_id'} . "</a>";
-//drupal_set_message("URL: $url");
-  
-  return $url;
-}//lis_custom_generate_linkout_gene_gbrowse
+  return array('ranges' => $ranges, 'coords' => $coords);
+}//lis_custom_getHSPranges
+
+
+function lis_custom_getGenePosition($prefix, $hit_name) {
+  // Get starting position for gene model
+  $sql = "
+    SELECT fl.fmin, s.uniquename AS chr FROM {featureloc} fl
+      INNER JOIN {feature} f ON f.feature_id=fl.feature_id
+      INNER JOIN {feature} s ON s.feature_id=fl.srcfeature_id
+    WHERE f.name='$prefix$hit_name'";
+//drupal_set_message("query: $sql");
+  $results = chado_query($sql);
+  foreach ($results as $r) {
+//drupal_set_message("result: <pre>" . print_r($r, true) . "</pre>");
+    return array('start' => $r->fmin, 'chr' => $r->chr);
+  }
+
+  // If we get here, the query failed
+  return 0;
+}//lis_custom_getGenePosition
