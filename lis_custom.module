@@ -30,17 +30,17 @@ function lis_custom_blast_linkout_info() {
  */
 function tripal_custom_generate_lis_gbrowse_linkout($url_prefix, $hit, $info, $options = array()) {
 
-  $url = false;
+  $url          = false;
   $blastdb_name = NULL;
-  $hit_name = $hit->{'Hit_def'};
-//drupal_set_message("Hit name: $hit_name");
+  $hit_name     = $hit->{'hit_name'};
+  $regex        = $info['RegEx'];
 
   if ($info['Target'] == 'All genomes' || stristr($info['Target'], 'genome')) {
-    // default regex
-    $regex = "/^\w+\.(\S+).*/";
-    
     if (preg_match('/^aradu/', $hit_name) == 1) {
       $blastdb_name = 'PeanutBase_aradu_gbrowse';
+    }
+    else if (preg_match('/^arahy/', $hit_name) == 1) {
+      $blastdb_name = 'PeanutBase_arahy_gbrowse';
     }
     else if (preg_match('/^araip/', $hit_name) == 1) {
       $blastdb_name = 'PeanutBase_araip_gbrowse';
@@ -66,7 +66,13 @@ function tripal_custom_generate_lis_gbrowse_linkout($url_prefix, $hit, $info, $o
       $blastdb_name = 'SoyBase_glyma_gbrowse';
     }
     else if (preg_match('/^lotja/', $hit_name) == 1) {
-      $blastdb_name = 'LegumeInfo_lotja_gbrowse';
+      if (preg_match("/(lotja\..*)_Lj\d/", $hit_name, $matches)) {
+        $hit_name = $matches[1];
+        $blastdb_name = 'LegumeInfo_lotja2.5_gbrowse';
+      }
+      else {
+        $blastdb_name = 'LegumeInfo_lotja_gbrowse';
+      }
     }
     else if (preg_match('/^lupan/', $hit_name) == 1) {
       $blastdb_name = 'LegumeInfo_lupan_gbrowse';
@@ -95,9 +101,9 @@ function tripal_custom_generate_lis_gbrowse_linkout($url_prefix, $hit, $info, $o
     else {
       // Don't know what to do with this hit
       drupal_set_message("Don't know how to create GBrowse linkout for '$hit_name'", 'error');
+      drupal_set_message(print_r($hit, true) . "\n\n");
     }  
 
-//drupal_set_message("RegEx for $hit_name is $regex and db is $blastdb_name");
     $hit_name = preg_replace($regex, '$1', $hit_name);
     $hit->{'linkout_id'} = $hit_name;
     if ($blastdb_info = tripal_custom_getBLASTdbinfo($blastdb_name)) {
@@ -106,17 +112,14 @@ function tripal_custom_generate_lis_gbrowse_linkout($url_prefix, $hit, $info, $o
   }//all-genomes
   
   else {
-    // default regex:
-    $regex = "/^\w+\.(\S+)/";
-    
     if (preg_match('/^aradu/', $hit_name) == 1) {
       $blastdb_name = 'PeanutBase_aradu_gene';
     }
-    if (preg_match('/^arahy/', $hit_name) == 1) {
-      $blastdb_name = 'PeanutBase_aradu_gene';
+    else if (preg_match('/^arahy/', $hit_name) == 1) {
+      $blastdb_name = 'PeanutBase_arahy_Tifrunner_gene';
     }
     else if (preg_match('/^araip/', $hit_name) == 1) {
-      $blastdb_name = 'PeanutBase_arahy_Tifrunner_gene';
+      $blastdb_name = 'PeanutBase_araip_gene';
     }
     else if (preg_match('/^cajca/', $hit_name) == 1) {
       $blastdb_name = 'LegumeInfo_cajca_gene';
@@ -139,7 +142,13 @@ function tripal_custom_generate_lis_gbrowse_linkout($url_prefix, $hit, $info, $o
       }
     }
     else if (preg_match('/^lotja/', $hit_name) == 1) {
-      $blastdb_name = 'LegumeInfo_lotja_gene';
+      if (preg_match("/(lotja\..*)_Lj\d/", $hit_name, $matches)) {
+        $hit_name = $matches[1];
+        $blastdb_name = 'LegumeInfo_lotja2.5_gene';
+      }
+      else {
+        $blastdb_name = 'LegumeInfo_lotja_gene';
+      }
     }
     else if (preg_match('/^lupan/', $hit_name) == 1) {
       $regex = "/^\w+\.(\w+)\.*.*/";
@@ -165,11 +174,10 @@ function tripal_custom_generate_lis_gbrowse_linkout($url_prefix, $hit, $info, $o
     }
     else {
       // Don't know what to do with this hit
-      drupal_set_message("Don't know how to create linkout for $hit_name", 'error');
+      drupal_set_message("Don't know how to create linkout for '$hit_name'", 'error');
     }  
-//drupal_set_message("RegEx for $hit_name is $regex and db is $blastdb_name");
 
-    $hit_name = preg_match($regex, $hit_name, $matches);
+    preg_match($regex, $hit_name, $matches);
     if (isset($matches[1])) {
       $hit->{'linkout_id'} = $matches[1];
     }
@@ -207,7 +215,6 @@ function lis_custom_generate_linkout_gbrowse($url_prefix, $hit, $info) {
   $range_info = lis_custom_getHSPranges($info['HSPs'], 0);
   $ranges = $range_info['ranges'];
   $coords = $range_info['coords'];
-//drupal_set_message("ranges: <pre>" . print_r($ranges, true) . "</pre>coords: <pre>" . print_r($coords, true) . "</pre>");
   
   // Calculate the minimum & maximum coordinates.
   $min = min($coords);
@@ -219,24 +226,20 @@ function lis_custom_generate_linkout_gbrowse($url_prefix, $hit, $info) {
   $query .= ";add=".$hit->{'linkout_id'}."+BLAST+BlastHit=" . join ("," , $ranges);
   $query .= ";h_feat=BlastHit";
   $url = "<a href=\"$url_prefix$query\">" . $hit->{'linkout_id'} . "</a>";
-//drupal_set_message("URL: $url");
   
   return $url;
 }//lis_custom_generate_linkout_gbrowse
 
 
 function lis_custom_generate_linkout_gene_gbrowse($url_prefix, $hit, $info) {
-//drupal_set_message("hit: <pre>" . print_r($hit, true) . "</pre>");
+
   // Hit positions will be relative to the gene model, so adjust to genome position
-  preg_match("/^\w+\./", $hit->{'Hit_def'}, $prefix);
-//drupal_set_message("Got prefix: ".$prefix[0]);
+  preg_match("/^\w+\./", $hit->{'hit_name'}, $prefix);
   $position = lis_custom_getGenePosition($prefix[0], $hit->{'linkout_id'});
-//drupal_set_message("postion: <pre>" . print_r($position, true) . "</pre>");
   
   $range_info = lis_custom_getHSPranges($info['HSPs'], $position['start']);
   $ranges = $range_info['ranges'];
   $coords = $range_info['coords'];
-//drupal_set_message("ranges: <pre>" . print_r($ranges, true) . "</pre>coords: <pre>" . print_r($coords, true) . "</pre>");
   
   // Build the link brute force until/unless someone figures out how to prevent
   //   l() from URL-encoding the sub-parameters to "query=".
@@ -244,7 +247,6 @@ function lis_custom_generate_linkout_gene_gbrowse($url_prefix, $hit, $info) {
   $query .= ";add=".$position['chr']."+BLAST+BlastHit=" . join ("," , $ranges);
   $query .= ";h_feat=BlastHit";
   $url = "<a href=\"$url_prefix$query\">" . $hit->{'linkout_id'} . "</a>";
-//drupal_set_message("URL: $url");
   
   return $url;
 }//lis_custom_generate_linkout_gene_gbrowse
@@ -280,13 +282,13 @@ function lis_custom_getGenePosition($prefix, $hit_name) {
       INNER JOIN {feature} f ON f.feature_id=fl.feature_id
       INNER JOIN {feature} s ON s.feature_id=fl.srcfeature_id
     WHERE f.name='$prefix$hit_name'";
-//drupal_set_message("query: $sql");
   $results = chado_query($sql);
   foreach ($results as $r) {
-//drupal_set_message("result: <pre>" . print_r($r, true) . "</pre>");
     return array('start' => $r->fmin, 'chr' => $r->chr);
   }
 
   // If we get here, the query failed
   return 0;
 }//lis_custom_getGenePosition
+
+
