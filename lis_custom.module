@@ -50,10 +50,12 @@ function tripal_custom_generate_lis_gbrowse_linkout($url_prefix, $hit, $info, $o
     }
     else if (preg_match('/^cicar/', $hit_name) == 1) {
       if (strstr($hit_name, 'ICC4958')) {
-        // remove line name
         $hit_name = str_replace(".ICC4958", "", $hit_name);
         if (strstr($hit_name, 'scaffold')) {
-          $regex = "/^(cicar.\w+).*/";
+          $regex = "/^(cicar\.scaffold\d+).*/";
+        }
+        else {
+          $regex = "/^cicar\.(Ca\d+).*/";
         }
         $blastdb_name = 'LegumeInfo_cicar_ICC4958_gbrowse';
       }
@@ -104,7 +106,9 @@ function tripal_custom_generate_lis_gbrowse_linkout($url_prefix, $hit, $info, $o
       drupal_set_message(print_r($hit, true) . "\n\n");
     }  
 
-    $hit_name = preg_replace($regex, '$1', $hit_name);
+    if (preg_match($regex, $hit_name, $matches)) {
+      $hit_name = $matches[1];
+    }
     $hit->{'linkout_id'} = $hit_name;
     if ($blastdb_info = tripal_custom_getBLASTdbinfo($blastdb_name)) {
       $url = lis_custom_generate_linkout_gbrowse($blastdb_info['urlprefix'], $hit, $info, $options);
@@ -188,7 +192,6 @@ function tripal_custom_generate_lis_gbrowse_linkout($url_prefix, $hit, $info, $o
 
   return $url;
 }//tripal_custom_generate_lis_gbrowse_linkout
-
 
 
 /**
